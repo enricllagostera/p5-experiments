@@ -8,7 +8,7 @@ let sizeMultiplier = 0.1;
 
 function setup()
 {
-    createCanvas(windowWidth - 50, windowHeight - 50);
+    createCanvas(windowWidth - 100, windowHeight - 100);
     background(0);
     noStroke();
     brushColor = color(255, 0, 0);
