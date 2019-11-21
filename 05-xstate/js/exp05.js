@@ -9,30 +9,38 @@ const sceneManager = Machine(
     id: "scenes",
     initial: "intro",
     context: {
-      bgColor: [50, 50, 50]
+      scene: undefined
     },
     states: {
       intro: {
-        entry: "test",
+        entry: "resetToIntro",
         on: {
-          ADVANCE: "gameplay"
+          ADVANCE: {
+            target: "gameplay"
+          }
         }
       },
       gameplay: {
-        entry: "test",
+        entry: "connectNewScene",
         on: {
-          WON: "gameWon",
-          LOST: "gameLost"
+          WON: {
+            target: "gameWon"
+          },
+          LOST: {
+            target: "gameLost"
+          }
         }
       },
       gameLost: {
-        entry: "test",
+        entry: "connectNewScene",
         on: {
-          ADVANCE: "intro"
+          ADVANCE: {
+            target: "intro"
+          }
         }
       },
       gameWon: {
-        entry: "test",
+        entry: "connectNewScene",
         on: {
           ADVANCE: "intro"
         }
@@ -41,39 +49,45 @@ const sceneManager = Machine(
   }, // 1st arg
   {
     actions: {
-      test: assign({
-        bgColor: () => [random(0, 255), random(0, 255), random(0, 255)]
+      connectNewScene: assign({
+        scene: (context, event) => {
+          if (context.scene != undefined) {
+            context.scene.onExit();
+          }
+          event.scene.onEnter();
+          return event.scene;
+        }
+      }),
+      resetToIntro: assign({
+        scene: (context, event) => {
+          if (context.scene != undefined) {
+            context.scene.onExit();
+          }
+          let introScene = new IntroScene();
+          introScene.onEnter();
+          return introScene;
+        }
       })
     }
   } // 2nd arg
 );
 
-let nextState, sceneService;
+let sceneService;
 
-function preload() {}
-
-function setup() {
+function preload() {
   // Environment setup
-  createCanvas(400, 400);
   sceneService = interpret(sceneManager);
   sceneService.start();
 }
 
+function setup() {
+  sceneService.state.context.scene.setup();
+}
+
 function draw() {
-  background(sceneService.state.context.bgColor);
-  textSize(30);
-  fill(255);
-  text(sceneService.state.value, 20, 50);
+  sceneService.state.context.scene.draw();
 }
 
 function keyPressed() {
-  if (keyCode == 32) {
-    sceneService.send("ADVANCE");
-  }
-  if (keyCode == 49) {
-    sceneService.send("WON");
-  }
-  if (keyCode == 50) {
-    sceneService.send("LOST");
-  }
+  sceneService.state.context.scene.keyPressed();
 }
